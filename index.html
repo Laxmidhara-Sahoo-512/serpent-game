@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+      *{
+    margin: 0;padding: 0;box-sizing: border-box;
+}
+.outerbox{
+    height: 100vh;width: 100vw;background-color: green;display: flex;flex-direction: row;justify-content: center;align-items: center;
+}
+.playboard{
+    height: 500px;width: 500px;background-image: linear-gradient(red,blue);border: solid 2px black;
+    display: grid;grid-template-rows: repeat(18,1fr);grid-template-columns: repeat(18,1fr);
+}
+.head{
+    background-color: red;
+    transform: scale(1.2);border: solid 1px black;border-radius: 10px;
+}
+.body{
+    background-color: black;
+    border-radius: 50%;
+}
+.food{
+    background-color: green;
+    border-radius: 50%;
+}
+.scorebox{
+  position: absolute;height: 150px;width: 200px;background-color: white;box-shadow: 0 0 10px blue;border: solid 1px black;
+  top: 100px;left: 20px;border-radius: 10%;text-align: center;display: flex;justify-content: center;align-items: center;
+}
+    </style>
+   
+</head>
+<body>
+  <div class="outerbox">
+     <div class="scorebox">
+        <div class="innerscorebox">
+          <span style="font-size: 20px;font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;">Currentscore</span>
+       <span id="currentscorebox" style="display:inline-block;height: 30px;width: 30px;background-color: aqua;border-radius: 5%;line-height: 30px;border-radius:10%;"></span> <br> <br>
+       <span style="font-size: 20px;font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;">Highscore</span>
+       <span id="highscorebox" style="display:inline-block;height: 30px;width: 30px;background-color: aqua;border-radius: 5%;line-height: 30px;border-radius:10%;"></span>
+
+        </div>
+     </div>
+    <div class="playboard" id="board"></div>
+  </div>   
+  <script>
+    let mainbox=document.getElementById("board");
+let snakearray=[{x:11,y:11}];let cur=0;
+let dir={x:0,y:1};
+let food={x:12,y:11};
+let max=17;let min=2;
+let currentscore=0;
+let speed=5;
+function playgame(){
+   var e = document.getElementById("board"); 
+        
+    
+   var child = e.lastElementChild;  
+   while (child) { 
+       e.removeChild(child); 
+       child = e.lastElementChild; 
+   } 
+       
+       
+     if((food.x===snakearray[0].x) && (food.y===snakearray[0].y)){
+        currentscore++;
+        if(localStorage.getItem("highscore")===null){localStorage.setItem("highscore",currentscore)}
+        else{
+          var b=Number.parseInt(localStorage.getItem("highscore"));
+          if(currentscore>b){localStorage.setItem("highscore",JSON.stringify(currentscore))}
+
+        }
+        
+
+        snakearray.unshift({x:snakearray[0].x+dir.x,y:snakearray[0].y+dir.y})
+        food={x:Math.floor(Math.random() * ((max-min)+1) + min),y:Math.floor(Math.random() * ((max-min)+1) + min)}
+
+     }
+     
+     let foodelement=document.createElement("div");foodelement.setAttribute("class","food");
+     mainbox.append(foodelement);foodelement.style.gridRowStart=food.y;foodelement.style.gridColumnStart=food.x;
+
+
+     if(snakearray[0].x<=0 || snakearray[0].x>=18 || snakearray[0].y<=0 || snakearray[0].y>=18){
+        alert("Game over");
+        snakearray=[{x:Math.floor(Math.random() * ((17-2)+1) + 2),y:Math.floor(Math.random() * ((17-2)+1) + 2)}];
+        food={x:Math.floor(Math.random() * ((17-2)+1) + 2),y:Math.floor(Math.random() * ((17-2)+1) + 2)}
+        currentscore=0;
+
+     }
+     for(let i=1;i<snakearray.length;i++){
+       if((snakearray[0].x===snakearray[i].x) && (snakearray[0].y===snakearray[i].y)){
+        alert("Game over");
+        snakearray=[{x:Math.floor(Math.random() * ((17-2)+1) + 2),y:Math.floor(Math.random() * ((17-2)+1) + 2)}];
+        food={x:Math.floor(Math.random() * ((17-2)+1) + 2),y:Math.floor(Math.random() * ((17-2)+1) + 2)}
+        currentscore=0;
+       }
+
+     }
+     document.getElementById("currentscorebox").innerHTML=currentscore;
+        document.getElementById("highscorebox").innerHTML=localStorage.getItem("highscore");
+     for(let j=snakearray.length-2;j>=0;j--){
+        snakearray[j+1]={...snakearray[j]}
+     }
+     snakearray[0].x=snakearray[0].x+dir.x;
+     snakearray[0].y=snakearray[0].y+dir.y;
+     
+     console.log(snakearray);
+
+     snakearray.forEach((value,index)=>{let box=document.createElement("div"); box.style.gridRowStart=value.y;
+     box.style.gridColumnStart=value.x;
+      if(index===0){
+      
+     
+      box.classList.add("head");
+
+      }
+      else{
+        
+         box.classList.add("body");
+      }
+      mainbox.append(box);
+    })
+  
+  
+  }
+
+
+function important(time){window.requestAnimationFrame(important); 
+    
+   if(((time-cur)/1000) <=1/speed){ 
+    return;
+   }
+
+   cur=time;
+    playgame();
+   
+   
+}
+
+
+window.requestAnimationFrame(important);
+
+window.addEventListener("keydown",e=>{
+    switch(e.key){
+     case "ArrowUp":
+        dir={x:0,y:-1};break;
+     case "ArrowDown": dir={x:0,y:1};break;
+     case "ArrowLeft": dir={x:-1,y:0};break;
+     case "ArrowRight": dir={x:1,y:0};break;
+     
+    default:alert("invalid input")
+
+    }
+})
+
+  </script>
+
+ 
+</body>
+</html>
